@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VÖRNTEC — Caso de Estudio Técnico</title>
+  <meta name="description" content="Detección Temprana de Fugas de Gas mediante IA en Operación Offshore — VÖRNTEC Technical Case Study"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#07070b;overflow-x:hidden}
+    html{scroll-behavior:smooth}
+    ::selection{background:rgba(0,200,83,0.19);color:#eef0f4}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+
+const C = {
+  bg:"#07070b", page:"#0c0c12", surface:"#111118", card:"#15151e",
+  border:"#1e1e2a", border2:"#282838",
+  green:"#00c853", greenDim:"rgba(0,200,83,0.08)",
+  blue:"#448aff", blueDim:"rgba(68,138,255,0.08)",
+  amber:"#ffab00", amberDim:"rgba(255,171,0,0.08)",
+  red:"#ff5252",
+  // Improved contrast: bumped text colors significantly
+  white:"#eef0f4", text:"#cccde0", dim:"#9a9ab8", muted:"#6e6e8e", faint:"#4a4a66",
+  outBg:"#171724", // slightly lighter bg for outputs card
+  mono:"'JetBrains Mono','Fira Code','Consolas',monospace",
+  sans:"'DM Sans','Inter','Segoe UI',system-ui,sans-serif",
+};
+
+const TP = "09";
+
+function F({ children, d = 0 }) {
+  const r = useRef(null); const [v, sv] = useState(false);
+  useEffect(() => { const o = new IntersectionObserver(([e]) => e.isIntersecting && sv(true), { threshold: 0.06 }); r.current && o.observe(r.current); return () => o.disconnect(); }, []);
+  return <div ref={r} style={{ opacity:v?1:0, transform:v?"none":"translateY(16px)", transition:`opacity .55s ease ${d}ms, transform .55s ease ${d}ms` }}>{children}</div>;
+}
+
+function Num({ value, prefix="", suffix="", ms=1600 }) {
+  const [d, sd] = useState(0); const r = useRef(null), go = useRef(false);
+  useEffect(() => { const o = new IntersectionObserver(([e]) => { if (e.isIntersecting && !go.current) { go.current = true; const s = performance.now(); const f = n => { const p = Math.min((n-s)/ms,1); sd((1-Math.pow(1-p,3))*value); p<1 && requestAnimationFrame(f); }; requestAnimationFrame(f); } }, { threshold:.3 }); r.current && o.observe(r.current); return () => o.disconnect(); }, [value, ms]);
+  return <span ref={r}>{prefix}{Math.round(d).toLocaleString("en-US")}{suffix}</span>;
+}
+
+function Sev({ l }) {
+  const m = { Crit:C.red, High:C.amber, Med:C.blue, Low:C.muted }; const c = m[l]||C.muted;
+  return <span style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, letterSpacing:".06em", padding:"2px 8px", borderRadius:3, color:c, background:c+"16", border:`1px solid ${c}25` }}>{l}</span>;
+}
+
+function KV({ k, v, mono=false }) {
+  return <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${C.border}` }}>
+    <span style={{ fontSize:13, color:C.dim }}>{k}</span>
+    <span style={{ fontSize:13, color:C.white, fontWeight:600, fontFamily:mono?C.mono:C.sans }}>{v}</span>
+  </div>;
+}
+
+function Tag({ children, color=C.green }) {
+  return <span style={{ fontSize:10, fontWeight:600, fontFamily:C.mono, letterSpacing:".04em", padding:"2px 9px", borderRadius:3, color, background:color+"12", border:`1px solid ${color}20`, whiteSpace:"nowrap" }}>{children}</span>;
+}
+
+function PF({ title, num }) {
+  return <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderTop:`1px solid ${C.border}`, paddingTop:14, marginTop:48, fontSize:11, fontFamily:C.mono, color:C.muted }}>
+    <span style={{ fontWeight:700, color:C.green, letterSpacing:".08em" }}>VÖRNTEC</span>
+    <span>{title}</span>
+    <span>{num} / {TP}</span>
+  </div>;
+}
+
+function SH({ num, title, sub }) {
+  return <div style={{ marginBottom:36 }}>
+    <div style={{ display:"flex", alignItems:"baseline", gap:14, marginBottom:10 }}>
+      <span style={{ fontSize:44, fontWeight:800, fontFamily:C.mono, color:C.green, lineHeight:1, opacity:.22 }}>{num}</span>
+      <h2 style={{ fontSize:26, fontWeight:700, color:C.white, margin:0, lineHeight:1.2, letterSpacing:"-.02em" }}>{title}</h2>
+    </div>
+    {sub && <p style={{ fontSize:14, color:C.dim, margin:0, lineHeight:1.6, maxWidth:620 }}>{sub}</p>}
+  </div>;
+}
+
+function Page({ children, id }) {
+  return <section id={id} style={{ minHeight:"100vh", padding:"64px 24px", display:"flex", justifyContent:"center" }}>
+    <div style={{ width:"100%", maxWidth:880 }}>{children}</div>
+  </section>;
+}
+
+function Logo({ name, w=100, h=32, light=false }) {
+  const [status, setStatus] = useState("loading");
+  const fallback = name.replace(/[-_]/g," ").replace(/\.\w+$/,"");
+  return <div style={{ width:w, height:h, borderRadius:4, overflow:"hidden", position:"relative", display:"flex", alignItems:"center", justifyContent:"center", background: light ? "rgba(255,255,255,0.9)" : "transparent", padding: light ? "3px 6px" : 0 }}>
+    {status !== "error" && <img src={"./" + name} alt={fallback} onLoad={() => setStatus("ok")} onError={() => setStatus("error")} style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain", display:"block", opacity: status==="ok" ? 1 : 0, transition:"opacity .3s" }}/>}
+    {status === "error" && <span style={{ fontSize:9, fontWeight:700, fontFamily:C.mono, color:C.faint, letterSpacing:".08em", textTransform:"uppercase" }}>{fallback}</span>}
+  </div>;
+}
+
+function App() {
+  const [sec, setSec] = useState(0);
+  const ids = ["s1","s2","s3","s4","s5","s6","s7","s8","s9"];
+
+  useEffect(() => {
+    const h = () => { const y = window.scrollY + window.innerHeight*.45; ids.forEach((id,i) => { const el = document.getElementById(id); el && y>=el.offsetTop && y<el.offsetTop+el.offsetHeight && setSec(i); }); };
+    window.addEventListener("scroll",h); return () => window.removeEventListener("scroll",h);
+  }, []);
+
+  const go = i => document.getElementById(ids[i])?.scrollIntoView({ behavior:"smooth" });
+
+  return (
+    <div style={{ background:C.bg, color:C.text, fontFamily:C.sans }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+      <style>{`*{box-sizing:border-box;margin:0;padding:0}body{background:${C.bg}}::selection{background:${C.green}30;color:${C.white}}html{scroll-behavior:smooth}`}</style>
+
+      {/* HEADER */}
+      <header style={{ position:"sticky", top:0, zIndex:50, borderBottom:`1px solid ${C.border}`, background:C.bg+"e6", backdropFilter:"blur(14px)" }}>
+        <div style={{ maxWidth:880, margin:"0 auto", padding:"12px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <Logo name="vorntec-logo.png" w={90} h={28}/>
+            <span style={{ width:1, height:16, background:C.border, display:"inline-block" }}/>
+            <span style={{ fontSize:11, color:C.dim }}>Caso de Estudio Técnico</span>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:9, fontWeight:700, fontFamily:C.mono, letterSpacing:".1em", color:C.muted, padding:"2px 8px", border:`1px solid ${C.border}`, borderRadius:3 }}>CONFIDENCIAL</span>
+            <Logo name="pampa.png" w={72} h={24} light/>
+          </div>
+        </div>
+      </header>
+
+      {/* NAV */}
+      <nav style={{ position:"fixed", right:14, top:"50%", transform:"translateY(-50%)", display:"flex", flexDirection:"column", gap:5, zIndex:100 }}>
+        {ids.map((_,i) => <button key={i} onClick={() => go(i)} style={{ width:sec===i?20:7, height:7, borderRadius:4, border:"none", cursor:"pointer", padding:0, background:sec===i?C.green:C.border2, transition:"all .3s" }}/>)}
+      </nav>
+
+{/* ═══ 01 — PORTADA ═══ */}
+      <Page id="s1">
+        <F>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:48 }}>
+            <span style={{ fontSize:15, fontWeight:800, fontFamily:C.mono, color:C.green, letterSpacing:".06em" }}>VÖRNTEC</span>
+            <span style={{ color:C.faint, fontFamily:C.mono, fontSize:12 }}>—</span>
+            <span style={{ fontSize:12, fontFamily:C.mono, color:C.dim }}>Caso de Estudio Técnico</span>
+          </div>
+        </F>
+        <F d={80}>
+          <h1 style={{ fontSize:"clamp(28px,4.2vw,46px)", fontWeight:800, color:C.white, lineHeight:1.1, letterSpacing:"-.03em", marginBottom:20 }}>
+            Detección Temprana de<br/>
+            Fugas de Gas mediante IA<br/>
+            <span style={{ color:C.green }}>en Operación Offshore</span>
+          </h1>
+        </F>
+        <F d={160}>
+          <p style={{ fontSize:15, color:C.text, lineHeight:1.7, maxWidth:600, marginBottom:40 }}>
+            Validación técnica del pipeline de detección de VÖRNTEC aplicado a telemetría SCADA real del Dataset 3W de Petrobras — 32.8M de observaciones, 24 canales de sensores, 9 tipos de fallas confirmadas.
+          </p>
+        </F>
+
+        <F d={220}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>INPUTS</div>
+              {[["Telemetría SCADA","32,872,250 observaciones"],["Canales de sensores","24 señales"],["Tipos de señal","Presión / Temp / Caudal"],["Clases de fallas etiquetadas","9 tipos"]].map(([k,v],i) => <KV key={i} k={k} v={v}/>)}
+            </div>
+            {/* OUTPUTS — subtly highlighted */}
+            <div style={{ background:"#1a1a28", border:`1px solid ${C.green}28`, borderRadius:8, padding:22, boxShadow:`0 0 20px ${C.green}06` }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:14 }}>OUTPUTS</div>
+              <div style={{ marginBottom:28 }}>
+                <div style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.green }}><Num value={8} prefix="$" suffix="M/año"/></div>
+                <div style={{ fontSize:14, color:C.white, fontWeight:600, marginTop:4 }}>Valor de producción recuperada</div>
+              </div>
+              <div>
+                <div style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.blue }}><Num value={146} suffix="t CH₄"/></div>
+                <div style={{ fontSize:14, color:C.white, fontWeight:600, marginTop:4 }}>Emisiones de metano evitadas por año</div>
+              </div>
+            </div>
+          </div>
+        </F>
+
+        {/* Benefits for Pampa — below inputs/outputs */}
+        <F d={320}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:1, background:C.border, borderRadius:8, overflow:"hidden" }}>
+            {[
+              { icon:"⚡", title:"Eficiencia Operacional", desc:"Detección proactiva de fallas que causan pérdidas de producción no visibles para los sistemas de alarma convencionales." },
+              { icon:"🛡", title:"Seguridad", desc:"Identificación temprana de condiciones de riesgo como cierres espurios de DHSV y slugging severo antes de que escalen." },
+              { icon:"🌿", title:"Impacto Ambiental", desc:"Reducción de emisiones de metano mediante detección anticipada de fugas de gas y bloqueos que requieren blowdown." },
+            ].map((b,i) =>
+              <div key={i} style={{ background:C.surface, padding:"20px 18px" }}>
+                <div style={{ fontSize:20, marginBottom:8 }}>{b.icon}</div>
+                <div style={{ fontSize:13, fontWeight:700, color:C.white, marginBottom:4 }}>{b.title}</div>
+                <div style={{ fontSize:12, color:C.dim, lineHeight:1.55 }}>{b.desc}</div>
+              </div>
+            )}
+          </div>
+        </F>
+        <F d={400}><div style={{ fontSize:11, color:C.muted, marginTop:28 }}>vorntec.com<br/>Confidencial — uso exclusivo para inversores y clientes</div></F>
+        <PF title="Resumen Ejecutivo" num="01"/>
+      </Page>
+
+{/* ═══ 02 — EL DATASET ═══ */}
+      <Page id="s2">
+        <SH num="02" title="El Dataset" sub="Origen, composición y credibilidad"/>
+        <F>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:24, marginBottom:28 }}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:20, marginBottom:16 }}>
+              <Logo name="petrobras.png" w={120} h={48} light/>
+              <div>
+                <h3 style={{ fontSize:16, fontWeight:700, color:C.white, margin:"0 0 10px" }}>Origen: Dataset 3W — Petrobras</h3>
+                <p style={{ fontSize:13, color:C.text, lineHeight:1.7, margin:0 }}>
+                  El dataset proviene de telemetría SCADA real registrada en múltiples pozos offshore operados por una compañía de producción major. Los datos fueron capturados a intervalos de un minuto a través de 24 canales de sensores, abarcando operaciones normales y nueve categorías de fallas confirmadas. Los identificadores de pozos están completamente anonimizados.
+                </p>
+              </div>
+            </div>
+            {/* Shorter, non-highlighted disclaimer */}
+            <p style={{ fontSize:11, color:C.muted, margin:0, lineHeight:1.6 }}>
+              Datos de acceso público (3W Dataset v2.0.0, CC BY 4.0). No existe relación comercial ni contractual entre VÖRNTEC y Petrobras. Dataset utilizado exclusivamente como benchmark técnico.
+            </p>
+          </div>
+        </F>
+        <F d={80}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>COMPOSICIÓN</div>
+              {[["Total de observaciones","32,872,250"],["Filas normales (Clase 0)","12,158,183"],["Filas anómalas (Clases 1–9)","20,714,067"],["Canales de sensores","24"],["Intervalo de muestreo","1 minuto"],["Tipos de fallas etiquetadas","9"],["Instancias reales etiquetadas","1,119"],["Instancias simuladas","1,089 — excluidas"]].map(([k,v],i) => <KV key={i} k={k} v={v} mono/>)}
+            </div>
+            <div>
+              <div style={{ background:C.greenDim, border:`1px solid ${C.green}18`, borderRadius:8, padding:22, marginBottom:16 }}>
+                <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:10 }}>HALLAZGO CLAVE</div>
+                <p style={{ fontSize:18, fontWeight:700, color:C.white, margin:"0 0 8px", lineHeight:1.35 }}>El 63% del tiempo monitoreado corresponde a una condición de falla activa.</p>
+                <p style={{ fontSize:12, color:C.text, margin:0, lineHeight:1.65 }}>El análisis revela que la proporción de tiempo en estado anómalo supera ampliamente al tiempo en operación normal. Estas fallas se desarrollan de forma progresiva y sub-umbral, sin generar activaciones en los sistemas de alarma convencionales basados en umbrales fijos — lo que evidencia una limitación estructural en los esquemas de monitoreo tradicionales.</p>
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:18 }}>
+                <div style={{ fontSize:10, color:C.muted, marginBottom:8 }}>Distribución por conteo de observaciones</div>
+                <div style={{ display:"flex", borderRadius:4, overflow:"hidden", height:28 }}>
+                  <div style={{ width:"37%", background:C.green+"28", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green }}>37.0%</div>
+                  <div style={{ width:"63%", background:C.red+"20", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.red }}>63.0%</div>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, fontSize:10, color:C.dim }}>
+                  <span>Operación Normal (Clase 0)</span><span>Todas las Fallas (1–9)</span>
+                </div>
+              </div>
+              <div style={{ marginTop:12, padding:"10px 14px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
+                <p style={{ fontSize:11, color:C.muted, margin:0, lineHeight:1.6 }}><strong style={{ color:C.dim }}>Nota sobre desbalance de clases:</strong> Ratio extremo — hasta 1:500 entre la clase más rara y la más frecuente. Abordado mediante conjuntos de evaluación balanceados. Entrenamiento con datos normales exclusivamente para la capa no supervisada.</p>
+              </div>
+            </div>
+          </div>
+        </F>
+        <PF title="Resumen del Dataset" num="02"/>
+      </Page>
+
+{/* ═══ 03 — TIPOS DE DATOS Y EQUIPAMIENTO ═══ */}
+      <Page id="s3">
+        <SH num="03" title="Tipos de Datos y Equipamiento" sub="Las 24 señales monitoreadas y su contexto físico"/>
+        <F>
+          <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Sensores de Proceso Físico</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:28 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:18 }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.blue, letterSpacing:".1em", marginBottom:12 }}>PRESIÓN — 10 CANALES</div>
+              {[["P-PDG","Permanent Downhole Gauge"],["P-TPT","Tubing Pressure Transducer"],["P-MON-CKP","Upstream — choke de producción"],["P-JUS-CKP","Downstream — choke de producción"],["P-MON-CKGL","Upstream — choke de gas-lift"],["P-JUS-CKGL","Downstream — choke de gas-lift"],["P-ANULAR","Presión anular"],["P-MON-SDV-P","Upstream — SDV de producción"],["PT-P","Válvula wing de producción"],["P-JUS-BS","Downstream — bomba de servicio"]].map(([c,d],i) =>
+                <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 0", borderBottom:`1px solid ${C.border}` }}>
+                  <code style={{ fontSize:11, fontFamily:C.mono, fontWeight:700, color:C.blue }}>{c}</code>
+                  <span style={{ fontSize:11, color:C.dim, textAlign:"right" }}>{d}</span>
+                </div>
+              )}
+            </div>
+            <div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:18, marginBottom:12 }}>
+                <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.amber, letterSpacing:".1em", marginBottom:12 }}>TEMPERATURA — 4 CANALES</div>
+                {[["T-PDG","Downhole Gauge"],["T-TPT","Tubing Pressure Transducer"],["T-MON-CKP","Upstream — choke de producción"],["T-JUS-CKP","Downstream — choke de producción"]].map(([c,d],i) =>
+                  <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"4px 0", borderBottom:`1px solid ${C.border}` }}>
+                    <code style={{ fontSize:11, fontFamily:C.mono, fontWeight:700, color:C.amber }}>{c}</code>
+                    <span style={{ fontSize:11, color:C.dim }}>{d}</span>
+                  </div>
+                )}
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:18 }}>
+                <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:12 }}>CAUDAL — 2 CANALES</div>
+                {[["QGL","Inyección de gas-lift [m³/s]"],["QBS","Caudal de bomba de servicio [m³/s]"]].map(([c,d],i) =>
+                  <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"4px 0", borderBottom:`1px solid ${C.border}` }}>
+                    <code style={{ fontSize:11, fontFamily:C.mono, fontWeight:700, color:C.green }}>{c}</code>
+                    <span style={{ fontSize:11, color:C.dim }}>{d}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </F>
+        <F d={80}>
+          <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Estados de Válvulas y Actuadores</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:28 }}>
+            {[
+              { h:"VÁLVULAS DE SEGURIDAD — 3", items:[["ESTADO-DHSV","Downhole Safety Valve","Cierre no programado → shutdown completo + fuga de gas"],["ESTADO-SDV-P","Production Shutdown Valve","Aísla la línea de flujo de producción"],["ESTADO-SDV-GL","Gas-Lift Shutdown Valve","Corta la línea de inyección de gas"]] },
+              { h:"ÁRBOL DE POZO — 4", items:[["ESTADO-M1","Production Master Valve (PMV)","Aislación primaria de producción"],["ESTADO-M2","Annulus Master Valve (AMV)","Aislación de línea anular"],["ESTADO-W1","Production Wing Valve (PWV)","Rama de producción del árbol"],["ESTADO-W2","Annulus Wing Valve (AWV)","Rama anular del árbol"]] },
+              { h:"APERTURAS DE CHOKE — 2 / CROSSOVER — 2", items:[["ABER-CKP","Production Choke [% abierto]","Control de flujo primario — variable clave de régimen"],["ABER-CKGL","Gas-Lift Choke [% abierto]","Controla el volumen de inyección de gas"],["ESTADO-PXO","Pig Crossover Valve","Operaciones de pigging"],["ESTADO-XO","Crossover Valve","Configuración de ruteo de líneas"]] },
+            ].map((g,gi) =>
+              <div key={gi} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:16 }}>
+                <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.dim, letterSpacing:".06em", marginBottom:10 }}>{g.h}</div>
+                {g.items.map(([code,name,desc],i) =>
+                  <div key={i} style={{ marginBottom:8, paddingBottom:8, borderBottom:i<g.items.length-1?`1px solid ${C.border}`:"none" }}>
+                    <code style={{ fontSize:10, fontFamily:C.mono, fontWeight:700, color:C.green }}>{code}</code>
+                    <div style={{ fontSize:12, fontWeight:600, color:C.text, marginTop:2 }}>{name}</div>
+                    <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>{desc}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </F>
+        <F d={160}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Lógica de Régimen Operativo</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, fontSize:13, color:C.text, lineHeight:1.65, marginBottom:14 }}>
+              <div><strong style={{ color:C.white }}>¿Qué es un régimen?</strong><br/>Un régimen operativo es la combinación única de estados de válvulas y configuraciones de choke en un momento dado — define qué líneas de flujo están activas, si el gas-lift está en operación, y cómo está configurado el choke.</div>
+              <div><strong style={{ color:C.white }}>¿Por qué importa para la detección?</strong><br/>Los rangos físicos de los sensores difieren significativamente entre regímenes. Una lectura de presión normal bajo producción con gas-lift puede ser anómala durante crossover. Toda normalización es condicional al régimen operativo.</div>
+            </div>
+            <div style={{ fontSize:12, color:C.text, marginBottom:10, lineHeight:1.6 }}>
+              <strong style={{ color:C.white }}>Construcción:</strong> Las variables ESTADO-* se mapean a enteros (0 = cerrado, 1 = abierto). Las aperturas ABER-* se discretizan a binario o ternario. La cadena concatenada identifica unívocamente el régimen. Regímenes dispersos (&lt;50k muestras) se consolidan en un bucket de Régimen General → ~11 regímenes distintos.
+            </div>
+            <div style={{ padding:"8px 14px", background:C.bg, borderRadius:4, fontFamily:C.mono, fontSize:11, color:C.green }}>ESTADO-M1=1, M2=0, ABER-CKP=1, CKGL=0</div>
+          </div>
+        </F>
+        <PF title="Tipos de Datos y Equipamiento" num="03"/>
+      </Page>
+
+{/* ═══ 04 — CLASIFICACIÓN DE FALLAS ═══ */}
+      <Page id="s4">
+        <SH num="04" title="Clasificación de Fallas" sub="9 clases de anomalías — causa, proporción y severidad"/>
+        <F>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", marginBottom:28 }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+              <thead><tr style={{ borderBottom:`1px solid ${C.border2}` }}>
+                {["#","Tipo de Falla","","% Tiempo","Sev."].map((h,i) => <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".06em" }}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  [0,"Operación Normal","12,158,183","37.0%","—"],
+                  [7,"Incrustación en PCK","7,864,945","23.9%","High"],
+                  [8,"Hidrato — Línea de Producción","4,809,035","14.6%","Crit"],
+                  [4,"Inestabilidad de Flujo","3,689,683","11.2%","Med"],
+                  [9,"Hidrato — Línea de Servicio","2,635,372","8.0%","High"],
+                  [3,"Slugging Severo","684,352","2.1%","Crit"],
+                  [5,"Pérdida Rápida de Productividad","439,408","1.3%","High"],
+                  [2,"Cierre Espurio de DHSV","277,001","0.8%","Crit"],
+                  [1,"Incremento Abrupto de BSW","236,794","0.7%","Med"],
+                  [6,"Restricción Rápida de PCK","77,477","0.2%","Med"],
+                ].map(([n,name,rows,pct,sev],i) =>
+                  <tr key={i} style={{ borderBottom:`1px solid ${C.border}`, background:i===0?C.greenDim:"transparent" }}>
+                    <td style={{ padding:"9px 14px", fontFamily:C.mono, fontWeight:700, color:i===0?C.green:C.muted, fontSize:11 }}>{n}</td>
+                    <td style={{ padding:"9px 14px" }}><span style={{ color:C.white, fontWeight:600, fontSize:13 }}>{name}</span><br/><span style={{ fontSize:10, fontFamily:C.mono, color:C.muted }}>{rows} filas</span></td>
+                    <td style={{ padding:"9px 14px", width:70 }}><div style={{ width:55, height:5, background:C.border, borderRadius:3, overflow:"hidden" }}><div style={{ width:`${Math.min(parseFloat(pct)*2.7,100)}%`, height:"100%", background:i===0?C.green:C.red, borderRadius:3 }}/></div></td>
+                    <td style={{ padding:"9px 14px", fontFamily:C.mono, fontSize:11, color:C.text }}>{pct}</td>
+                    <td style={{ padding:"9px 14px" }}>{sev==="—"?<span style={{ color:C.muted }}>—</span>:<Sev l={sev}/>}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </F>
+        <F d={80}>
+          <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:12 }}>Descripción de Fallas</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            {[
+              ["7 — Incrustación en PCK","Depósitos minerales estrechan progresivamente el bore del choke. El caudal disminuye gradualmente — pasa desapercibido durante semanas sin monitoreo.",C.amber],
+              ["8 — Hidrato — Línea de Producción","Cristales de gas/agua bloquean la línea de flujo. Pérdida total de producción; la limpieza requiere blowdown con fuga de gas asociada.",C.red],
+              ["4 — Inestabilidad de Flujo","Flujo multifásico irregular. Reduce eficiencia; precursor conocido de eventos de slugging severo.",C.blue],
+              ["3 — Slugging Severo","Oscilaciones periódicas de presión en el riser. Disparo de equipos y desgaste mecánico acelerado.",C.red],
+              ["2 — Cierre Espurio de DHSV","Válvula de seguridad cierra sin comando. Shutdown completo; requiere despresurización controlada con fuga de gas.",C.red],
+              ["5 — Pérdida Rápida de Productividad","El pozo produce por debajo de lo esperado sin cambios en el choke. Indica cambio en el reservorio o restricción interna.",C.amber],
+              ["1 — Incremento Abrupto de BSW","Aumento súbito en la fracción de agua/sedimento. Degrada la calidad del fluido; precursor de daño.",C.blue],
+              ["6 — Restricción Rápida de PCK","Cierre abrupto del choke genera transitorios fuertes de presión y flujo en todo el sistema.",C.blue],
+            ].map(([t,d,c],i) =>
+              <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:14 }}>
+                <div style={{ fontSize:11, fontWeight:700, fontFamily:C.mono, color:c, marginBottom:4 }}>{t}</div>
+                <p style={{ fontSize:12, color:C.dim, margin:0, lineHeight:1.55 }}>{d}</p>
+              </div>
+            )}
+          </div>
+        </F>
+        <PF title="Clasificación de Fallas — Clases 0–9" num="04"/>
+      </Page>
+
+{/* ═══ 05 — METODOLOGÍA DE PROCESAMIENTO ═══ */}
+      <Page id="s5">
+        <SH num="05" title="Metodología de Procesamiento" sub="De telemetría SCADA cruda a señal de anomalía"/>
+        {[
+          {n:"01",t:"Ingestión Temporal y Split",d:"Orden cronológico mantenido en todo el pipeline. Split estricto train / val / test / holdout sin fuga de datos. El entrenamiento utiliza únicamente datos normales. Los conjuntos de validación y test están balanceados 50/50 entre todas las clases de fallas para evaluación imparcial.",tags:["Zero leakage","Orden cronológico"],c:C.blue},
+          {n:"02",t:"Clasificación de Régimen",d:"Los estados de válvulas (ESTADO-*) y aperturas de choke (ABER-*) se discretizan y concatenan en un string de régimen por observación. Regímenes con menos de 50,000 muestras se consolidan en un bucket de Régimen General, resultando en aproximadamente 11 regímenes distintos.",tags:["ESTADO-* + ABER-*","~11 regímenes finales"],c:C.green},
+          {n:"03",t:"Manejo de NaN",d:"Forward-fill seguido de backward-fill por canal. Variables de régimen rellenadas con moda o cero. Variables de sensores físicos imputadas usando medianas por régimen del set de entrenamiento. Las variables de régimen y operativas se tratan de forma completamente independiente.",tags:["Forward / backward fill","Imputación por régimen"],c:C.amber},
+          {n:"04",t:"Normalización Condicionada por Régimen",d:"Sensores físicos normalizados como (x − μᵣ) / σᵣ, con estadísticas computadas exclusivamente desde observaciones normales de entrenamiento dentro de cada régimen. Fallback global para regímenes dispersos. Las variables de régimen (estados discretos, aperturas) nunca se normalizan.",tags:["μ/σ desde train-normal","Régimen-condicional"],c:C.blue},
+          {n:"05",t:"Escalado MinMax + Capping de Outliers",d:"Sensores físicos escalados a [0, 1] usando MinMaxScaler ajustado únicamente sobre datos de entrenamiento. Valores limitados al percentil 1–99 de entrenamiento, suprimiendo transitorios extremos que de otro modo inflarían los scores de anomalía.",tags:["Fit solo en train","Percentil 1st–99th"],c:C.green},
+          {n:"06",t:"Ingeniería de Features",d:"Features derivados computados después de toda la normalización: tasa de cambio por canal (delta), diferenciales de presión cross-sensor, y estadísticas de ventana deslizante. Aplicados únicamente a variables operativas validadas sin valores NaN remanentes.",tags:["Deltas","Ratios de presión","Rolling stats"],c:C.amber},
+        ].map((s,i) =>
+          <F key={i} d={i*70}>
+            <div style={{ display:"grid", gridTemplateColumns:"46px 1fr", gap:14, marginBottom:24 }}>
+              <div style={{ width:46, height:46, borderRadius:8, background:s.c+"12", border:`1px solid ${s.c}28`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:800, fontFamily:C.mono, color:s.c }}>{s.n}</div>
+              <div>
+                <h4 style={{ fontSize:14, fontWeight:700, color:C.white, margin:"0 0 6px" }}>{s.t}</h4>
+                <p style={{ fontSize:12, color:C.text, margin:"0 0 8px", lineHeight:1.6 }}>{s.d}</p>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>{s.tags.map((t,j) => <Tag key={j} color={s.c}>{t}</Tag>)}</div>
+              </div>
+            </div>
+          </F>
+        )}
+        <PF title="Pipeline de Procesamiento de Datos" num="05"/>
+      </Page>
+
+{/* ═══ 06 — ARQUITECTURA DE DETECCIÓN ═══ */}
+      <Page id="s6">
+        <SH num="06" title="Arquitectura de Detección" sub="Cascada de tres capas — detección desacoplada de clasificación"/>
+        <F>
+          <p style={{ fontSize:13, color:C.text, lineHeight:1.75, marginBottom:28 }}>
+            El sistema separa la <strong style={{ color:C.white }}>detección</strong> de anomalías de la <strong style={{ color:C.white }}>anotación</strong> de fallas por diseño. La detección (Capas 1–2) no requiere datos etiquetados de fallas y puede desplegarse inmediatamente con cualquier operador. La anotación (Capa 3) es una capa de enriquecimiento opcional que mejora progresivamente a medida que se acumula historial de fallas etiquetadas.
+          </p>
+        </F>
+        <F d={80}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:28 }}>
+            {[
+              { n:"01", l:"Detectar", sub:"Estadístico + Isolation Forest", q:"Identificar lo que no se ve normal", c:C.green, rows:[["DATOS REQ.","Solo operación normal"],["OUTPUT","Anomaly score [0 → 1]"],["UMBRAL","Calibrado en set de validación"],["BENEFICIO","Cero etiquetas de falla necesarias"]] },
+              { n:"02", l:"Clasificar", sub:"Anotación Supervisada", q:"Nombrar el tipo de falla", c:C.blue, rows:[["DATOS REQ.","Incidentes históricos etiquetados"],["OUTPUT","Clase de falla + confianza"],["MODELOS","Decision Tree + Log. Regression"],["BENEFICIO","Mejora con el tiempo"]] },
+              { n:"03", l:"Alertar", sub:"Notificación al Operador", q:"La información correcta, en el momento correcto", c:C.amber, rows:[["CONTENIDO","Clase + severidad + canales"],["TIMING","Ventana de intervención next-day"],["INTEGRACIÓN","SCADA / OPC-UA / REST API"],["BENEFICIO","Sin fatiga de alarmas"]] },
+            ].map((ly,i) =>
+              <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:20 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                  <span style={{ fontSize:10, fontWeight:800, fontFamily:C.mono, padding:"2px 7px", borderRadius:3, background:ly.c+"16", color:ly.c, border:`1px solid ${ly.c}28` }}>CAPA {ly.n}</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:C.white }}>{ly.l}</span>
+                </div>
+                <div style={{ fontSize:12, fontWeight:600, color:C.dim, marginBottom:4 }}>{ly.sub}</div>
+                <div style={{ fontSize:11, color:ly.c, fontStyle:"italic", marginBottom:14, lineHeight:1.5 }}>"{ly.q}"</div>
+                {ly.rows.map(([k,v],j) =>
+                  <div key={j} style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:`1px solid ${C.border}` }}>
+                    <span style={{ fontSize:10, fontFamily:C.mono, color:C.muted }}>{k}</span>
+                    <span style={{ fontSize:10, color:C.text, fontWeight:600, textAlign:"right" }}>{v}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </F>
+        <F d={160}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"14px 18px", overflowX:"auto" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:5, justifyContent:"center", flexWrap:"nowrap", minWidth:600 }}>
+              {["Datos SCADA","Clasif. Régimen","L1 Filtro Estadístico","L2 Isolation Forest","L3 Anotación Supervisada","Alerta al Operador"].map((s,i) =>
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                  <div style={{ padding:"6px 11px", borderRadius:4, fontSize:10, fontWeight:600, fontFamily:C.mono, whiteSpace:"nowrap", background:i===0||i===5?C.green+"16":C.card, color:i===0||i===5?C.green:C.text, border:`1px solid ${i===0||i===5?C.green+"30":C.border}` }}>{s}</div>
+                  {i<5 && <span style={{ color:C.faint, fontSize:11 }}>→</span>}
+                </div>
+              )}
+            </div>
+          </div>
+        </F>
+        <PF title="Arquitectura de Detección en Cascada" num="06"/>
+      </Page>
+
+{/* ═══ 07 — RESULTADOS VALIDADOS ═══ */}
+      <Page id="s7">
+        <SH num="07" title="Resultados Validados" sub="Impacto estimado a partir de la distribución de fallas observada"/>
+        <F>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+            <div style={{ background:C.outBg, border:`1px solid ${C.green}20`, borderRadius:8, padding:28, textAlign:"center" }}>
+              <div style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.green, marginBottom:6 }}>$8M/año</div>
+              <div style={{ fontSize:15, fontWeight:700, color:C.white }}>Valor de producción recuperada</div>
+            </div>
+            <div style={{ background:C.outBg, border:`1px solid ${C.blue}20`, borderRadius:8, padding:28, textAlign:"center" }}>
+              <div style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.blue, marginBottom:6 }}>146t CH₄</div>
+              <div style={{ fontSize:15, fontWeight:700, color:C.white }}>Emisiones de metano evitadas por año</div>
+            </div>
+          </div>
+        </F>
+        <F d={80}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
+            <div style={{ padding:"12px 18px", borderBottom:`1px solid ${C.border}` }}><span style={{ fontSize:13, fontWeight:700, color:C.white }}>Desglose de impacto por tipo de falla</span></div>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
+              <thead><tr style={{ borderBottom:`1px solid ${C.border2}` }}>
+                {["Tipo de Falla","% Tiempo","Mecanismo de Pérdida Principal","Valor Est.","CH₄","Sev."].map((h,i) => <th key={i} style={{ padding:"8px 12px", textAlign:"left", fontSize:9, fontWeight:700, fontFamily:C.mono, color:C.muted }}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  ["Incrustación en PCK","23.93%","Pérdida gradual de caudal por estrechamiento progresivo del choke","$4.2M","Low","High"],
+                  ["Hidrato — Línea Prod.","14.63%","Bloqueo total; pérdida de producción + fuga de gas por blowdown","$2.1M + 82t","Crit","Crit"],
+                  ["Inestabilidad de Flujo","11.22%","Degradación de eficiencia y desgaste acelerado de equipos","$0.9M","Low","Med"],
+                  ["Hidrato — Línea Serv.","8.02%","Impacto indirecto: operaciones de inyección y soporte interrumpidas","$0.4M + 38t","High","High"],
+                  ["Cierre Espurio DHSV","0.84%","Shut-in no planificado; despresurización con fuga de gas","$0.3M + 26t","Crit","Crit"],
+                ].map((r,i) =>
+                  <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
+                    <td style={{ padding:"8px 12px", color:C.white, fontWeight:600 }}>{r[0]}</td>
+                    <td style={{ padding:"8px 12px", fontFamily:C.mono, color:C.text }}>{r[1]}</td>
+                    <td style={{ padding:"8px 12px", color:C.dim, maxWidth:200 }}>{r[2]}</td>
+                    <td style={{ padding:"8px 12px", fontFamily:C.mono, color:C.green, fontWeight:700 }}>{r[3]}</td>
+                    <td style={{ padding:"8px 12px" }}><Sev l={r[4]}/></td>
+                    <td style={{ padding:"8px 12px" }}><Sev l={r[5]}/></td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </F>
+        <PF title="Resultados — Impacto Económico y de Emisiones" num="07"/>
+      </Page>
+
+{/* ═══ 08 — PROPUESTA DE COLABORACIÓN ═══ */}
+      <Page id="s8">
+        <SH num="08" title="Propuesta de Colaboración: Piloto de 3 Meses Sin Cargo" sub="Corroborar el valor agregado de VÖRNTEC en las operaciones de Pampa Energía"/>
+
+        {/* Two-column layout: Objective LEFT / Requirements RIGHT */}
+        <F>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:32 }}>
+
+            {/* LEFT: Objective */}
+            <div style={{ background:C.greenDim, border:`1px solid ${C.green}18`, borderRadius:8, padding:28, display:"flex", flexDirection:"column", justifyContent:"center" }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:14 }}>OBJETIVO DEL PILOTO</div>
+              <p style={{ fontSize:14, color:C.white, fontWeight:600, lineHeight:1.6, margin:"0 0 16px" }}>
+                Corroborar el valor que VÖRNTEC puede agregar a las operaciones de Pampa Energía mediante la ejecución de nuestro pipeline de detección sobre datos operativos reales — sin costo ni compromiso contractual.
+              </p>
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                {[
+                  ["Ejecutar los algoritmos sin costo durante 3 meses","Pipeline completo de detección y clasificación sobre datos reales de Pampa Energía, con reportes de avance mensuales."],
+                  ["Demostrar valor en condiciones reales","Cuantificación del ahorro potencial y el impacto ambiental en sus activos de upstream."],
+                  ["Trabajar en la operación con su equipo","Podemos ir a la operación para entender el problema en profundidad y calibrar la solución al contexto específico de Pampa."],
+                ].map(([t,d],i) =>
+                  <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div style={{ width:18, height:18, borderRadius:4, background:C.green+"1a", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.green, flexShrink:0, marginTop:2 }}>✓</div>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:700, color:C.white, marginBottom:2 }}>{t}</div>
+                      <div style={{ fontSize:12, color:C.text, lineHeight:1.55 }}>{d}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT: Requirements stacked */}
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em" }}>QUÉ NECESITAMOS</div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22, flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                  <div style={{ width:32, height:32, borderRadius:6, background:C.greenDim, border:`1px solid ${C.green}28`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, fontFamily:C.mono, color:C.green }}>01</div>
+                  <h4 style={{ fontSize:14, fontWeight:700, color:C.white, margin:0 }}>Acceso a Dataset Operativo</h4>
+                </div>
+                <p style={{ fontSize:12, color:C.text, lineHeight:1.65, margin:"0 0 12px" }}>
+                  Acceso a un dataset operativo real que incluya variables como <strong style={{ color:C.white }}>presión, temperatura y caudal</strong>, junto con registros de mantenimiento y/o fallas operativas documentadas.
+                </p>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {["Presión","Temperatura","Caudal","Registros de fallas","Mantenimiento"].map((t,i) => <Tag key={i} color={C.green}>{t}</Tag>)}
+                </div>
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22, flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                  <div style={{ width:32, height:32, borderRadius:6, background:C.blueDim, border:`1px solid ${C.blue}28`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, fontFamily:C.mono, color:C.blue }}>02</div>
+                  <h4 style={{ fontSize:14, fontWeight:700, color:C.white, margin:0 }}>Disponibilidad de un Experto Operativo</h4>
+                </div>
+                <p style={{ fontSize:12, color:C.text, lineHeight:1.65, margin:"0 0 12px" }}>
+                  Disponibilidad de una persona de su equipo técnico durante aproximadamente <strong style={{ color:C.white }}>1 hora por semana</strong> por un período de <strong style={{ color:C.white }}>3 meses</strong>, para validación conjunta de resultados y calibración del sistema.
+                </p>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {["~1 hr/semana","3 meses","Validación conjunta"].map((t,i) => <Tag key={i} color={C.blue}>{t}</Tag>)}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </F>
+
+        {/* Timeline */}
+        <F d={120}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
+            <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>TIMELINE ESTIMADO</div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)" }}>
+              {[
+                {w:"Semana 1–2",t:"Onboarding",d:"Recepción y evaluación de datos. Setup del entorno.",c:C.blue},
+                {w:"Semana 3–6",t:"Procesamiento",d:"Limpieza, normalización, entrenamiento de modelos.",c:C.green},
+                {w:"Semana 7–10",t:"Detección",d:"Ejecución del pipeline. Validación conjunta con Pampa.",c:C.amber},
+                {w:"Semana 11–12",t:"Entregable",d:"Reporte de resultados y recomendaciones.",c:C.green},
+              ].map((s,i) =>
+                <div key={i} style={{ padding:"10px 12px", borderLeft:i>0?`1px solid ${C.border}`:"none" }}>
+                  <div style={{ fontSize:10, fontFamily:C.mono, fontWeight:700, color:s.c, marginBottom:3 }}>{s.w}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:C.white, marginBottom:3 }}>{s.t}</div>
+                  <div style={{ fontSize:11, color:C.dim, lineHeight:1.45 }}>{s.d}</div>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop:10, height:3, borderRadius:2, background:C.border, overflow:"hidden" }}>
+              <div style={{ width:"100%", height:"100%", background:`linear-gradient(90deg,${C.blue},${C.green},${C.amber},${C.green})`, borderRadius:2 }}/>
+            </div>
+          </div>
+        </F>
+        <PF title="Propuesta de Colaboración — Pampa Energía" num="08"/>
+      </Page>
+
+{/* ═══ 09 — PREGUNTAS FRECUENTES ═══ */}
+      <Page id="s9">
+        <SH num="09" title="Preguntas Frecuentes" sub="Respuestas anticipadas a las consultas técnicas y operativas más relevantes"/>
+
+        {[
+          {
+            q: "¿Cómo tienen que venir los datos?",
+            a: "Series temporales en formato tabular (CSV, Parquet o exportación directa del historian SCADA). Cada fila = timestamp + lecturas de sensores. No necesitan estar limpios — nuestro pipeline maneja NaN, congelamiento de señales y gaps temporales de forma nativa. Mínimo requerido: timestamp + presión + temperatura + caudal.",
+            color: C.blue
+          },
+          {
+            q: "¿Qué tanta información de la operación necesitan?",
+            a: "Para la primera corrida: datos SCADA crudos + listado de qué mide cada tag. El sistema aprende el comportamiento normal directamente de los datos. Info adicional (tipo de válvulas, árbol de pozo) mejora la clasificación de régimen pero no es excluyente. Además, complementamos con investigación propia en papers técnicos sobre los tipos de fallas específicos.",
+            color: C.green
+          },
+          {
+            q: "¿Cómo se relaciona el caso de Petrobras con la operación de Pampa?",
+            a: "Las variables físicas (presión, temperatura, caudal) y los tipos de fallas (hidratos, incrustaciones, slugging, DHSV) son universales en O&G. El caso de Petrobras valida la metodología — no se transfiere el modelo. El sistema se reentrena completamente con datos de cada operador. El piloto generaría un modelo específico para los activos de Pampa.",
+            color: C.amber
+          },
+          {
+            q: "¿Cómo calcularon los $8M y las 146t de CH₄? ¿Cuánto representa de la operación total?",
+            a: "$8M: distribución de fallas observada × tasas de pérdida de producción publicadas × $75/bbl con supuesto de intervención en 24hrs. 146t CH₄: eventos que requieren blowdown (hidratos + DHSV) con liberación de gas. Son una ilustración de orden de magnitud para un cluster offshore. El piloto cuantificaría el impacto real para la escala específica de Pampa.",
+            color: C.green
+          },
+          {
+            q: "¿Qué tan grande es la operación analizada?",
+            a: "32.8M de observaciones a intervalos de 1 minuto, 24 canales de sensores, 1,119 instancias reales etiquetadas, 9 tipos de fallas confirmadas. Es una de las bases de datos públicas más completas y citadas (100+ publicaciones académicas) para detección de anomalías en producción de petróleo y gas.",
+            color: C.blue
+          },
+          {
+            q: "¿Qué tanto necesitan saber de la operación de Pampa para correr los algoritmos?",
+            a: "Muy poco al inicio. La Capa 1 (detección) es no supervisada — aprende qué es 'normal' directamente de los datos. Lo primero que hacemos es un pre-análisis automático que identifica qué sensores reaccionan ante cada tipo de anomalía. Lo que sí necesitamos es que un experto valide los hallazgos: cuando el sistema detecta algo, el SME confirma si es real. Esa retroalimentación mejora la clasificación progresivamente.",
+            color: C.amber
+          },
+          {
+            q: "¿Cómo y quién clasificó los tipos de fallas?",
+            a: "Clasificadas por ingenieros de operaciones y expertos en integridad de pozos de Petrobras, basándose en reportes de incidentes confirmados. Taxonomía documentada en publicaciones peer-reviewed (Journal of Petroleum Science and Engineering, 2019). Para Pampa, la clasificación se construiría en conjunto con su equipo técnico a partir de sus propios registros.",
+            color: C.green
+          },
+        ].map((item, i) =>
+          <F key={i} d={i * 50}>
+            <div style={{ marginBottom: 16, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: item.color + "12", border: `1px solid ${item.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, fontFamily: C.mono, color: item.color, flexShrink: 0, marginTop: 2 }}>{"0" + (i + 1)}</div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: C.white, margin: "0 0 8px", lineHeight: 1.4 }}>{item.q}</h4>
+                  <p style={{ fontSize: 12, color: C.text, margin: 0, lineHeight: 1.7 }}>{item.a}</p>
+                </div>
+              </div>
+            </div>
+          </F>
+        )}
+        <PF title="Preguntas Frecuentes" num="09"/>
+      </Page>
+
+{/* ═══ FOOTER ═══ */}
+      <footer style={{ borderTop:`1px solid ${C.border}`, padding:"44px 24px", background:C.page }}>
+        <div style={{ maxWidth:880, margin:"0 auto", textAlign:"center" }}>
+          <div style={{ fontSize:18, fontWeight:800, fontFamily:C.mono, color:C.green, letterSpacing:".06em", marginBottom:4 }}>VÖRNTEC</div>
+          <div style={{ fontSize:12, color:C.dim, marginBottom:28 }}>Detección de Fugas de Gas mediante IA</div>
+          <div style={{ display:"flex", justifyContent:"center", gap:28, marginBottom:28 }}>
+            {[["32.8M","Observaciones"],["9","Clases de Fallas"],["$8M","Recuperable /año"],["146t","CH₄ Evitado"]].map(([v,l],i) =>
+              <div key={i}><div style={{ fontSize:16, fontWeight:800, fontFamily:C.mono, color:C.green }}>{v}</div><div style={{ fontSize:10, color:C.muted }}>{l}</div></div>
+            )}
+          </div>
+          <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:20, marginBottom:20 }}>
+            <div style={{ fontSize:9, fontWeight:700, fontFamily:C.mono, color:C.faint, letterSpacing:".12em", marginBottom:14 }}>RESPALDO Y ECOSISTEMA</div>
+            <div style={{ display:"flex", justifyContent:"center", gap:16 }}>
+              <Logo name="bgv.png" w={90} h={28} light/>
+              <Logo name="ignite.png" w={90} h={28} light/>
+              <Logo name="nvidia.png" w={120} h={28} light/>
+            </div>
+          </div>
+          <div style={{ fontSize:10, color:C.faint }}>Confidencial — para uso exclusivo de inversores y clientes</div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+  </script>
+</body>
+</html>
