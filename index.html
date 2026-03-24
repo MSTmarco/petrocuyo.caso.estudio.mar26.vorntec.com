@@ -13,6 +13,29 @@
     body{background:#07070b;overflow-x:hidden}
     html{scroll-behavior:smooth}
     ::selection{background:rgba(0,200,83,0.19);color:#eef0f4}
+
+    /* Responsive overrides */
+    @media(max-width:768px){
+      .g2{grid-template-columns:1fr !important}
+      .g3{grid-template-columns:1fr !important}
+      .g4{grid-template-columns:1fr 1fr !important}
+      .gnav{display:none !important}
+      .gheader-text{display:none !important}
+      .gpage{padding:40px 16px !important; min-height:auto !important}
+      .gpage>div{max-width:100% !important}
+      .gflow{min-width:0 !important; flex-wrap:wrap !important; justify-content:flex-start !important}
+      .gtable{font-size:10px !important}
+      .gh1{font-size:28px !important}
+      .gsection-num{font-size:32px !important}
+      .gsection-title{font-size:22px !important}
+      .gmetric{font-size:28px !important}
+      .gfaq-grid{gap:12px !important}
+    }
+    @media(max-width:480px){
+      .g4{grid-template-columns:1fr !important}
+      .gpage{padding:32px 12px !important}
+      .gh1{font-size:24px !important}
+    }
   </style>
 </head>
 <body>
@@ -79,15 +102,15 @@ function PF({ title, num }) {
 function SH({ num, title, sub }) {
   return <div style={{ marginBottom:36 }}>
     <div style={{ display:"flex", alignItems:"baseline", gap:14, marginBottom:10 }}>
-      <span style={{ fontSize:44, fontWeight:800, fontFamily:C.mono, color:C.green, lineHeight:1, opacity:.22 }}>{num}</span>
-      <h2 style={{ fontSize:26, fontWeight:700, color:C.white, margin:0, lineHeight:1.2, letterSpacing:"-.02em" }}>{title}</h2>
+      <span className="gsection-num" style={{ fontSize:44, fontWeight:800, fontFamily:C.mono, color:C.green, lineHeight:1, opacity:.22 }}>{num}</span>
+      <h2 className="gsection-title" style={{ fontSize:26, fontWeight:700, color:C.white, margin:0, lineHeight:1.2, letterSpacing:"-.02em" }}>{title}</h2>
     </div>
     {sub && <p style={{ fontSize:14, color:C.dim, margin:0, lineHeight:1.6, maxWidth:620 }}>{sub}</p>}
   </div>;
 }
 
 function Page({ children, id }) {
-  return <section id={id} style={{ minHeight:"100vh", padding:"64px 24px", display:"flex", justifyContent:"center" }}>
+  return <section id={id} className="gpage" style={{ minHeight:"100vh", padding:"64px 24px", display:"flex", justifyContent:"center" }}>
     <div style={{ width:"100%", maxWidth:880 }}>{children}</div>
   </section>;
 }
@@ -122,8 +145,8 @@ function App() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"12px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <Logo name="vorntec-logo.png" w={90} h={28}/>
-            <span style={{ width:1, height:16, background:C.border, display:"inline-block" }}/>
-            <span style={{ fontSize:11, color:C.dim }}>Caso de Estudio Técnico</span>
+            <span className="gheader-text" style={{ width:1, height:16, background:C.border, display:"inline-block" }}/>
+            <span className="gheader-text" style={{ fontSize:11, color:C.dim }}>Caso de Estudio Técnico</span>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontSize:9, fontWeight:700, fontFamily:C.mono, letterSpacing:".1em", color:C.muted, padding:"2px 8px", border:`1px solid ${C.border}`, borderRadius:3 }}>CONFIDENCIAL</span>
@@ -133,7 +156,7 @@ function App() {
       </header>
 
       {/* NAV */}
-      <nav style={{ position:"fixed", right:14, top:"50%", transform:"translateY(-50%)", display:"flex", flexDirection:"column", gap:5, zIndex:100 }}>
+      <nav className="gnav" style={{ position:"fixed", right:14, top:"50%", transform:"translateY(-50%)", display:"flex", flexDirection:"column", gap:5, zIndex:100 }}>
         {ids.map((_,i) => <button key={i} onClick={() => go(i)} style={{ width:sec===i?20:7, height:7, borderRadius:4, border:"none", cursor:"pointer", padding:0, background:sec===i?C.green:C.border2, transition:"all .3s" }}/>)}
       </nav>
 
@@ -147,7 +170,7 @@ function App() {
           </div>
         </F>
         <F d={80}>
-          <h1 style={{ fontSize:"clamp(28px,4.2vw,46px)", fontWeight:800, color:C.white, lineHeight:1.1, letterSpacing:"-.03em", marginBottom:20 }}>
+          <h1 className="gh1" style={{ fontSize:"clamp(28px,4.2vw,46px)", fontWeight:800, color:C.white, lineHeight:1.1, letterSpacing:"-.03em", marginBottom:20 }}>
             Detección Temprana de<br/>
             Fugas de Gas mediante IA<br/>
             <span style={{ color:C.green }}>en Operación Offshore</span>
@@ -160,7 +183,7 @@ function App() {
         </F>
 
         <F d={220}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
               <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>INPUTS</div>
               {[["Telemetría SCADA","32,872,250 observaciones"],["Canales de sensores","24 señales"],["Tipos de señal","Presión / Temp / Caudal"],["Clases de fallas etiquetadas","9 tipos"]].map(([k,v],i) => <KV key={i} k={k} v={v}/>)}
@@ -169,11 +192,11 @@ function App() {
             <div style={{ background:"#1a1a28", border:`1px solid ${C.green}28`, borderRadius:8, padding:22, boxShadow:`0 0 20px ${C.green}06` }}>
               <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:14 }}>OUTPUTS</div>
               <div style={{ marginBottom:28 }}>
-                <div style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.green }}><Num value={8} prefix="$" suffix="M/año"/></div>
+                <div className="gmetric" style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.green }}><Num value={8} prefix="$" suffix="M/año"/></div>
                 <div style={{ fontSize:14, color:C.white, fontWeight:600, marginTop:4 }}>Valor de producción recuperada</div>
               </div>
               <div>
-                <div style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.blue }}><Num value={146} suffix="t CH₄"/></div>
+                <div className="gmetric" style={{ fontSize:36, fontWeight:800, fontFamily:C.mono, color:C.blue }}><Num value={146} suffix="t CH₄"/></div>
                 <div style={{ fontSize:14, color:C.white, fontWeight:600, marginTop:4 }}>Emisiones de metano evitadas por año</div>
               </div>
             </div>
@@ -182,7 +205,7 @@ function App() {
 
         {/* Benefits for Petro Cuyo — below inputs/outputs */}
         <F d={320}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:1, background:C.border, borderRadius:8, overflow:"hidden" }}>
+          <div className="g3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:1, background:C.border, borderRadius:8, overflow:"hidden" }}>
             {[
               { icon:"⚡", title:"Eficiencia Operacional", desc:"Detección proactiva de fallas que causan pérdidas de producción no visibles para los sistemas de alarma convencionales." },
               { icon:"🛡", title:"Seguridad", desc:"Identificación temprana de condiciones de riesgo como cierres espurios de DHSV y slugging severo antes de que escalen." },
@@ -221,7 +244,7 @@ function App() {
           </div>
         </F>
         <F d={80}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
               <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>COMPOSICIÓN</div>
               {[["Total de observaciones","32,872,250"],["Filas normales (Clase 0)","12,158,183"],["Filas anómalas (Clases 1–9)","20,714,067"],["Canales de sensores","24"],["Intervalo de muestreo","1 minuto"],["Tipos de fallas etiquetadas","9"],["Instancias reales etiquetadas","1,119"],["Instancias simuladas","1,089 — excluidas"]].map(([k,v],i) => <KV key={i} k={k} v={v} mono/>)}
@@ -256,7 +279,7 @@ function App() {
         <SH num="03" title="Tipos de Datos y Equipamiento" sub="Las 24 señales monitoreadas y su contexto físico"/>
         <F>
           <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Sensores de Proceso Físico</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:28 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:28 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:18 }}>
               <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.blue, letterSpacing:".1em", marginBottom:12 }}>PRESIÓN — 10 CANALES</div>
               {[["P-PDG","Permanent Downhole Gauge"],["P-TPT","Tubing Pressure Transducer"],["P-MON-CKP","Upstream — choke de producción"],["P-JUS-CKP","Downstream — choke de producción"],["P-MON-CKGL","Upstream — choke de gas-lift"],["P-JUS-CKGL","Downstream — choke de gas-lift"],["P-ANULAR","Presión anular"],["P-MON-SDV-P","Upstream — SDV de producción"],["PT-P","Válvula wing de producción"],["P-JUS-BS","Downstream — bomba de servicio"]].map(([c,d],i) =>
@@ -290,7 +313,7 @@ function App() {
         </F>
         <F d={80}>
           <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Estados de Válvulas y Actuadores</div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:28 }}>
+          <div className="g3" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:28 }}>
             {[
               { h:"VÁLVULAS DE SEGURIDAD — 3", items:[["ESTADO-DHSV","Downhole Safety Valve","Cierre no programado → shutdown completo + fuga de gas"],["ESTADO-SDV-P","Production Shutdown Valve","Aísla la línea de flujo de producción"],["ESTADO-SDV-GL","Gas-Lift Shutdown Valve","Corta la línea de inyección de gas"]] },
               { h:"ÁRBOL DE POZO — 4", items:[["ESTADO-M1","Production Master Valve (PMV)","Aislación primaria de producción"],["ESTADO-M2","Annulus Master Valve (AMV)","Aislación de línea anular"],["ESTADO-W1","Production Wing Valve (PWV)","Rama de producción del árbol"],["ESTADO-W2","Annulus Wing Valve (AWV)","Rama anular del árbol"]] },
@@ -312,7 +335,7 @@ function App() {
         <F d={160}>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:14 }}>Lógica de Régimen Operativo</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, fontSize:13, color:C.text, lineHeight:1.65, marginBottom:14 }}>
+            <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, fontSize:13, color:C.text, lineHeight:1.65, marginBottom:14 }}>
               <div><strong style={{ color:C.white }}>¿Qué es un régimen?</strong><br/>Un régimen operativo es la combinación única de estados de válvulas y configuraciones de choke en un momento dado — define qué líneas de flujo están activas, si el gas-lift está en operación, y cómo está configurado el choke.</div>
               <div><strong style={{ color:C.white }}>¿Por qué importa para la detección?</strong><br/>Los rangos físicos de los sensores difieren significativamente entre regímenes. Una lectura de presión normal bajo producción con gas-lift puede ser anómala durante crossover. Toda normalización es condicional al régimen operativo.</div>
             </div>
@@ -329,7 +352,7 @@ function App() {
       <Page id="s4">
         <SH num="04" title="Clasificación de Fallas" sub="9 clases de anomalías — causa, proporción y severidad"/>
         <F>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", marginBottom:28 }}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflowX:"auto", marginBottom:28 }}>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
               <thead><tr style={{ borderBottom:`1px solid ${C.border2}` }}>
                 {["#","Tipo de Falla","","% Tiempo","Sev."].map((h,i) => <th key={i} style={{ padding:"10px 14px", textAlign:"left", fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".06em" }}>{h}</th>)}
@@ -361,7 +384,7 @@ function App() {
         </F>
         <F d={80}>
           <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:12 }}>Descripción de Fallas</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {[
               ["7 — Incrustación en PCK","Depósitos minerales estrechan progresivamente el bore del choke. El caudal disminuye gradualmente — pasa desapercibido durante semanas sin monitoreo.",C.amber],
               ["8 — Hidrato — Línea de Producción","Cristales de gas/agua bloquean la línea de flujo. Pérdida total de producción; la limpieza requiere blowdown con fuga de gas asociada.",C.red],
@@ -416,7 +439,7 @@ function App() {
           </p>
         </F>
         <F d={80}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:28 }}>
+          <div className="g3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:28 }}>
             {[
               { n:"01", l:"Detectar", sub:"Estadístico + Isolation Forest", q:"Identificar lo que no se ve normal", c:C.green, rows:[["DATOS REQ.","Solo operación normal"],["OUTPUT","Anomaly score [0 → 1]"],["UMBRAL","Calibrado en set de validación"],["BENEFICIO","Cero etiquetas de falla necesarias"]] },
               { n:"02", l:"Clasificar", sub:"Anotación Supervisada", q:"Nombrar el tipo de falla", c:C.blue, rows:[["DATOS REQ.","Incidentes históricos etiquetados"],["OUTPUT","Clase de falla + confianza"],["MODELOS","Decision Tree + Log. Regression"],["BENEFICIO","Mejora con el tiempo"]] },
@@ -441,7 +464,7 @@ function App() {
         </F>
         <F d={160}>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"14px 18px", overflowX:"auto" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, justifyContent:"center", flexWrap:"nowrap", minWidth:600 }}>
+            <div className="gflow" style={{ display:"flex", alignItems:"center", gap:5, justifyContent:"center", flexWrap:"nowrap", minWidth:600 }}>
               {["Datos SCADA","Clasif. Régimen","L1 Filtro Estadístico","L2 Isolation Forest","L3 Anotación Supervisada","Alerta al Operador"].map((s,i) =>
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:5 }}>
                   <div style={{ padding:"6px 11px", borderRadius:4, fontSize:10, fontWeight:600, fontFamily:C.mono, whiteSpace:"nowrap", background:i===0||i===5?C.green+"16":C.card, color:i===0||i===5?C.green:C.text, border:`1px solid ${i===0||i===5?C.green+"30":C.border}` }}>{s}</div>
@@ -458,19 +481,19 @@ function App() {
       <Page id="s7">
         <SH num="07" title="Resultados Validados" sub="Impacto estimado a partir de la distribución de fallas observada"/>
         <F>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:28 }}>
             <div style={{ background:C.outBg, border:`1px solid ${C.green}20`, borderRadius:8, padding:28, textAlign:"center" }}>
-              <div style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.green, marginBottom:6 }}>$8M/año</div>
+              <div className="gmetric" style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.green, marginBottom:6 }}>$8M/año</div>
               <div style={{ fontSize:15, fontWeight:700, color:C.white }}>Valor de producción recuperada</div>
             </div>
             <div style={{ background:C.outBg, border:`1px solid ${C.blue}20`, borderRadius:8, padding:28, textAlign:"center" }}>
-              <div style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.blue, marginBottom:6 }}>146t CH₄</div>
+              <div className="gmetric" style={{ fontSize:38, fontWeight:800, fontFamily:C.mono, color:C.blue, marginBottom:6 }}>146t CH₄</div>
               <div style={{ fontSize:15, fontWeight:700, color:C.white }}>Emisiones de metano evitadas por año</div>
             </div>
           </div>
         </F>
         <F d={80}>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflowX:"auto" }}>
             <div style={{ padding:"12px 18px", borderBottom:`1px solid ${C.border}` }}><span style={{ fontSize:13, fontWeight:700, color:C.white }}>Desglose de impacto por tipo de falla</span></div>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
               <thead><tr style={{ borderBottom:`1px solid ${C.border2}` }}>
@@ -506,7 +529,7 @@ function App() {
 
         {/* Two-column layout: Objective LEFT / Requirements RIGHT */}
         <F>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:32 }}>
+          <div className="g2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:32 }}>
 
             {/* LEFT: Objective */}
             <div style={{ background:C.greenDim, border:`1px solid ${C.green}18`, borderRadius:8, padding:28, display:"flex", flexDirection:"column", justifyContent:"center" }}>
@@ -567,7 +590,7 @@ function App() {
         <F d={120}>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:22 }}>
             <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.muted, letterSpacing:".1em", marginBottom:14 }}>TIMELINE ESTIMADO</div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)" }}>
+            <div className="g4" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)" }}>
               {[
                 {w:"Semana 1–2",t:"Onboarding",d:"Recepción y evaluación de datos. Setup del entorno.",c:C.blue},
                 {w:"Semana 3–6",t:"Procesamiento",d:"Limpieza, normalización, entrenamiento de modelos.",c:C.green},
@@ -611,7 +634,7 @@ function App() {
           },
           {
             q: "¿Cómo calcularon los $8M y las 146t de CH₄? ¿Cuánto representa de la operación total?",
-            a: "$8M: distribución de fallas observada × tasas de pérdida de producción publicadas con supuesto de intervención en 24hrs. 146t CH₄: eventos que requieren blowdown (hidratos + DHSV) con liberación de gas. Son una ilustración de orden de magnitud para un cluster offshore. El piloto cuantificaría el impacto real para la escala específica de Petro Cuyo.",
+            a: "$8M: distribución de fallas observada × tasas de pérdida de producción publicadas × $75/bbl con supuesto de intervención en 24hrs. 146t CH₄: eventos que requieren blowdown (hidratos + DHSV) con liberación de gas. Son una ilustración de orden de magnitud para un cluster offshore. El piloto cuantificaría el impacto real para la escala específica de Petro Cuyo.",
             color: C.green
           },
           {
