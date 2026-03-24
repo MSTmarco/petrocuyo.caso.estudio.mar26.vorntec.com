@@ -180,7 +180,7 @@ function App() {
           </div>
         </F>
 
-        {/* Benefits for Pampa — below inputs/outputs */}
+        {/* Benefits for Petro Cuyo — below inputs/outputs */}
         <F d={320}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:1, background:C.border, borderRadius:8, overflow:"hidden" }}>
             {[
@@ -502,7 +502,7 @@ function App() {
 
 {/* ═══ 08 — PROPUESTA DE COLABORACIÓN ═══ */}
       <Page id="s8">
-        <SH num="08" title="Propuesta de Colaboración: Piloto de 3 Meses Sin Cargo" sub="Corroborar el valor agregado de VÖRNTEC en las operaciones de Pampa Energía"/>
+        <SH num="08" title="Propuesta de Colaboración: Piloto de 3 Meses Sin Cargo" sub="Corroborar el valor agregado de VÖRNTEC en las operaciones de Petro Cuyo"/>
 
         {/* Two-column layout: Objective LEFT / Requirements RIGHT */}
         <F>
@@ -512,13 +512,13 @@ function App() {
             <div style={{ background:C.greenDim, border:`1px solid ${C.green}18`, borderRadius:8, padding:28, display:"flex", flexDirection:"column", justifyContent:"center" }}>
               <div style={{ fontSize:10, fontWeight:700, fontFamily:C.mono, color:C.green, letterSpacing:".1em", marginBottom:14 }}>OBJETIVO DEL PILOTO</div>
               <p style={{ fontSize:14, color:C.white, fontWeight:600, lineHeight:1.6, margin:"0 0 16px" }}>
-                Corroborar el valor que VÖRNTEC puede agregar a las operaciones de Pampa Energía mediante la ejecución de nuestro pipeline de detección sobre datos operativos reales — sin costo ni compromiso contractual.
+                Corroborar el valor que VÖRNTEC puede agregar a las operaciones de Petro Cuyo mediante la ejecución de nuestro pipeline de detección sobre datos operativos reales — sin costo ni compromiso contractual.
               </p>
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                 {[
-                  ["Ejecutar los algoritmos sin costo durante 3 meses","Pipeline completo de detección y clasificación sobre datos reales de Pampa Energía, con reportes de avance mensuales."],
+                  ["Ejecutar los algoritmos sin costo durante 3 meses","Pipeline completo de detección y clasificación sobre datos reales de Petro Cuyo, con reportes de avance mensuales."],
                   ["Demostrar valor en condiciones reales","Cuantificación del ahorro potencial y el impacto ambiental en sus activos de upstream."],
-                  ["Trabajar en la operación con su equipo","Podemos ir a la operación para entender el problema en profundidad y calibrar la solución al contexto específico de Pampa."],
+                  ["Trabajar en la operación con su equipo","Podemos ir a la operación para entender el problema en profundidad y calibrar la solución al contexto específico de Petro Cuyo."],
                 ].map(([t,d],i) =>
                   <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
                     <div style={{ width:18, height:18, borderRadius:4, background:C.green+"1a", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.green, flexShrink:0, marginTop:2 }}>✓</div>
@@ -571,7 +571,7 @@ function App() {
               {[
                 {w:"Semana 1–2",t:"Onboarding",d:"Recepción y evaluación de datos. Setup del entorno.",c:C.blue},
                 {w:"Semana 3–6",t:"Procesamiento",d:"Limpieza, normalización, entrenamiento de modelos.",c:C.green},
-                {w:"Semana 7–10",t:"Detección",d:"Ejecución del pipeline. Validación conjunta con Pampa.",c:C.amber},
+                {w:"Semana 7–10",t:"Detección",d:"Ejecución del pipeline. Validación conjunta con Petro Cuyo.",c:C.amber},
                 {w:"Semana 11–12",t:"Entregable",d:"Reporte de resultados y recomendaciones.",c:C.green},
               ].map((s,i) =>
                 <div key={i} style={{ padding:"10px 12px", borderLeft:i>0?`1px solid ${C.border}`:"none" }}>
@@ -586,7 +586,7 @@ function App() {
             </div>
           </div>
         </F>
-        <PF title="Propuesta de Colaboración — Pampa Energía" num="08"/>
+        <PF title="Propuesta de Colaboración — Petro Cuyo" num="08"/>
       </Page>
 
 {/* ═══ 09 — PREGUNTAS FRECUENTES ═══ */}
@@ -605,13 +605,13 @@ function App() {
             color: C.green
           },
           {
-            q: "¿Cómo se relaciona el caso de Petrobras con la operación de Pampa?",
-            a: "Las variables físicas (presión, temperatura, caudal) y los tipos de fallas (hidratos, incrustaciones, slugging, DHSV) son universales en O&G. El caso de Petrobras valida la metodología — no se transfiere el modelo. El sistema se reentrena completamente con datos de cada operador. El piloto generaría un modelo específico para los activos de Pampa.",
+            q: "¿Cómo se relaciona el caso de Petrobras con la operación de Petro Cuyo?",
+            a: "Las variables físicas (presión, temperatura, caudal) y los tipos de fallas (hidratos, incrustaciones, slugging, DHSV) son universales en O&G. El caso de Petrobras valida la metodología — no se transfiere el modelo. El sistema se reentrena completamente con datos de cada operador. El piloto generaría un modelo específico para los activos de Petro Cuyo.",
             color: C.amber
           },
           {
             q: "¿Cómo calcularon los $8M y las 146t de CH₄? ¿Cuánto representa de la operación total?",
-            a: "$8M: distribución de fallas observada × tasas de pérdida de producción publicadas × $75/bbl con supuesto de intervención en 24hrs. 146t CH₄: eventos que requieren blowdown (hidratos + DHSV) con liberación de gas. Son una ilustración de orden de magnitud para un cluster offshore. El piloto cuantificaría el impacto real para la escala específica de Pampa.",
+            a: "$8M: distribución de fallas observada × tasas de pérdida de producción publicadas × $75/bbl con supuesto de intervención en 24hrs. 146t CH₄: eventos que requieren blowdown (hidratos + DHSV) con liberación de gas. Son una ilustración de orden de magnitud para un cluster offshore. El piloto cuantificaría el impacto real para la escala específica de Petro Cuyo.",
             color: C.green
           },
           {
@@ -620,13 +620,13 @@ function App() {
             color: C.blue
           },
           {
-            q: "¿Qué tanto necesitan saber de la operación de Pampa para correr los algoritmos?",
+            q: "¿Qué tanto necesitan saber de la operación de Petro Cuyo para correr los algoritmos?",
             a: "Muy poco al inicio. La Capa 1 (detección) es no supervisada — aprende qué es 'normal' directamente de los datos. Lo primero que hacemos es un pre-análisis automático que identifica qué sensores reaccionan ante cada tipo de anomalía. Lo que sí necesitamos es que un experto valide los hallazgos: cuando el sistema detecta algo, el SME confirma si es real. Esa retroalimentación mejora la clasificación progresivamente.",
             color: C.amber
           },
           {
             q: "¿Cómo y quién clasificó los tipos de fallas?",
-            a: "Clasificadas por ingenieros de operaciones y expertos en integridad de pozos de Petrobras, basándose en reportes de incidentes confirmados. Taxonomía documentada en publicaciones peer-reviewed (Journal of Petroleum Science and Engineering, 2019). Para Pampa, la clasificación se construiría en conjunto con su equipo técnico a partir de sus propios registros.",
+            a: "Clasificadas por ingenieros de operaciones y expertos en integridad de pozos de Petrobras, basándose en reportes de incidentes confirmados. Taxonomía documentada en publicaciones peer-reviewed (Journal of Petroleum Science and Engineering, 2019). Para Petro Cuyo, la clasificación se construiría en conjunto con su equipo técnico a partir de sus propios registros.",
             color: C.green
           },
         ].map((item, i) =>
